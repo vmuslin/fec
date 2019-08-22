@@ -6,7 +6,7 @@ AMOUNT = 0
 STRING = 1
 DATE = 3
 
-FileConfig = {
+DBConfig = {
     'DataDir': 'data/2019-2020',
     'DataDirPattern' : 'data/*',
     'FieldSeparator' : '|',
@@ -139,7 +139,7 @@ FileConfig = {
 }
         
 
-class Config:
+class DBConfig:
     def __init__(self):
         pass
 
