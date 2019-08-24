@@ -6,16 +6,15 @@ AMOUNT = 0
 STRING = 1
 DATE = 3
 
-DBConfig = {
-    'DataDir': 'data/2019-2020',
+DBSpec = {
+    'DataDir': '../fec-data',
     'DataDirPattern' : 'data/*',
     'FieldSeparator' : '|',
     'Tables': {
         # Contributions by Individuals
         'CBI': {
-            'ZipPattern' : 'indiv*.zip',
+            'ZipPattern' : '*.zip',
             'FilePattern' : 'itcont*.txt',
-            'Path' : 'itcont.txt',
             'Fields' : (('CMTE_ID', STRING),
                         ('AMNDT_IND', STRING),
                         ('RPT_TP', STRING),
@@ -40,9 +39,8 @@ DBConfig = {
         },
         # Candidate Master
         'CANDIDATE' : {
-            'ZipPattern' : 'cn*.zip',
+            'ZipPattern' : '*.zip',
             'FilePattern' : 'cn*.txt',
-            'Path' : 'cn.txt',
             'Fields' : (('CAND_ID', STRING),
                         ('CAND_NAME', STRING),
                         ('CAND_PTY_AFFILIATION', STRING),
@@ -61,9 +59,8 @@ DBConfig = {
         },
         # Candidate Committee Linkage
         'CCL' : {
-            'ZipPattern' : 'ccl*.zip',
+            'ZipPattern' : '*.zip',
             'FilePattern' : 'ccl*.txt',
-            'Path' : 'ccl.txt',
             'Fields' : (('CAND_ID', STRING),
                         ('CAND_ELECTION_YR', STRING),
                         ('FEC_ELECTION_YR', STRING),
@@ -74,9 +71,8 @@ DBConfig = {
         },
         # Committee Master
         'COMMITTEE' : {
-            'ZipPattern' : 'cm*.zip',
+            'ZipPattern' : '*.zip',
             'FilePattern' : 'cm*.txt',
-            'Path' : 'cm.txt',
             'Fields' : (('CMTE_ID', STRING),
                         ('CMTE_NM', STRING),
                         ('TRES_NM', STRING),
@@ -95,44 +91,38 @@ DBConfig = {
         },
         # All Candidates
         'ALL' : {
-            'ZipPattern' : 'weball*.zip',
-            'FilePattern' : 'itcont*.txt',
-            'Path' : 'itcont.txt',
+            'ZipPattern' : '*.zip',
+            'FilePattern' : 'weball*.txt',
             'Fields' : {}
         },
         # House/Sentate Current Campaigns
         'HSCC' : {
             'ZipPattern' : 'weball*.zip',
             'FilePattern' : '*.txt',
-            'Path' : '.txt',
             'Fields' : {}
         },
         # PAC Summary
         'PAC' : {
-            'ZipPattern' : 'webk*.zip',
-            'FilePattern' : '*.txt',
-            'Path' : '.txt',
+            'ZipPattern' : '*.zip',
+            'FilePattern' : 'webk*.txt',
             'Fields' : {}
         },
         # Contributions from committees to candidates & independent expenditures
         'CFC' : {
-            'ZipPattern' : 'pas*.zip',
-            'FilePattern' : '*.txt',
-            'Path' : 'itcont.txt',
+            'ZipPattern' : '*.zip',
+            'FilePattern' : 'pas*.txt',
             'Fields' : {}
         },
         # Any transaction from one committee to another
         'TFC' : {
-            'ZipPattern' : 'oth*.zip',
-            'FilePattern' : '*.txt',
-            'Path' : '.txt',
+            'ZipPattern' : '*.zip',
+            'FilePattern' : 'oth*.txt',
             'Fields' : {}
         },
         # Operating expenditures
         'OE' : {
-            'ZipPattern' : 'oppexp*.zip',
-            'FilePattern' : '*.txt',
-            'Path' : '.txt',
+            'ZipPattern' : '*.zip',
+            'FilePattern' : 'oppexp*.txt',
             'Fields' : {}
         }
     }
@@ -145,27 +135,27 @@ class DBConfig:
 
     @staticmethod
     def getArchives(table):
-        pattern = os.path.join(Config.getDataDirPattern(),
-                               FileConfig['Tables'][table]['ZipPattern'])
+        pattern = os.path.join(DBConfig.getDataDirPattern(),
+                               DBSpec['Tables'][table]['ZipPattern'])
         archives = glob.glob(pattern)
         return archives
 
     @staticmethod
     def getDataDic(table):
-        return FileConfig['Tables'][table]['Fields']
+        return DBSpec['Tables'][table]['Fields']
 
     @staticmethod
     def getDataDir():
-        return FileConfig['DataDir']
+        return DBSpec['DataDir']
 
     @staticmethod
     def getDataDirPattern():
-        return FileConfig['DataDirPattern']
+        return DBSpec['DataDirPattern']
 
     @staticmethod
     def getFieldIndex(table): # dictionary { field_name : (index, datatype) }
         index = {}
-        for count, tup in enumerate(Config.getDataDic(table)):
+        for count, tup in enumerate(DBConfig.getDataDic(table)):
             name = tup[0]
             datatype = tup[1]
             index[name] = (count, datatype)
@@ -173,36 +163,31 @@ class DBConfig:
 
     @staticmethod
     def getFilePattern(table):
-        return FileConfig['Tables'][table]['FilePattern']
+        return DBSpec['Tables'][table]['FilePattern']
 
     @staticmethod
     def getFiles(table):
-        pattern = os.path.join(Config.getDataDirPattern(),
-                               Config.getFilePattern(table))
+        pattern = os.path.join(DBConfig.getDataDirPattern(),
+                               DBConfig.getFilePattern(table))
         files =  glob.glob(pattern)
         return files
 
     @staticmethod
     def getFilesAndArchives(table):
-        files = Config.getFiles(table)
-        archives = Config.getArchives(table)
+        files = DBConfig.getFiles(table)
+        archives = DBConfig.getArchives(table)
         return files + archives
 
     @staticmethod
-    def getPath(table):
-        return os.path.join(Config.getDataDir(),
-                            FileConfig['Tables'][table]['Path'])
-
-    @staticmethod
     def getSep():
-        return FileConfig['FieldSeparator']
+        return DBSpec['FieldSeparator']
 
 
 def tests():
     table = 'CANDIDATE'
-    pprint(Config.getDataDic(table))
-    pprint(Config.getFieldIndex(table))
-    pprint(Config.getFilesAndArchives(table))
+    pprint(DBConfig.getDataDic(table))
+    pprint(DBConfig.getFieldIndex(table))
+    pprint(DBConfig.getFilesAndArchives(table))
 
 if __name__ == '__main__':
     tests()

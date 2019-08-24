@@ -6,15 +6,15 @@ import zipfile
 import timeit
 from pprint import pprint
 
-from datadic import Config
+from dbconfig import DBConfig
 
 
 class DiskTable:
     def __init__(self, table):
         self.table = table
-        self.datadic = Config.getDataDic(table)
-        self.fieldindex = Config.getFieldIndex(table)
-        self.files = Config.getFilesAndArchives(table)
+        self.datadic = DBConfig.getDataDic(table)
+        self.fieldindex = DBConfig.getFieldIndex(table)
+        self.files = DBConfig.getFilesAndArchives(table)
         self.curfile = None
         self.curfilename = None
 
