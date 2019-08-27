@@ -1,4 +1,6 @@
-class Filestream:
+# FilestreamReader
+
+class FileStreamReader:
 
     def __init__(self, names):
         self.names = names
@@ -22,18 +24,18 @@ class Filestream:
         self.close()
 
 
-    # __iter__ method is used to implement interation over the Filestream object
+    # __iter__ method is used to implement interation over the FileStreamReader object
     def __iter__(self):
         return self
 
 
-    # __iter__ method is used to implement interation over the Filestream object
+    # __iter__ method is used to implement interation over the FileStreamReader object
     def __next__(self):
         return self.readline()
 
 
     def __str__(self):
-        return ''.join(('--- Filestream  ---\n',
+        return ''.join(('--- FileStreamReader  ---\n',
                         'Current file: ', str(self.curname), '\n',
                         str(self.names)))
 
@@ -100,7 +102,7 @@ def tests():
     pattern = '*.py'
     files = glob.glob(pattern)
     
-    with Filestream(files) as fs:
+    with FileStreamReader(files) as fs:
         #fs.open(files)
         prevname = ""
         for line in fs:

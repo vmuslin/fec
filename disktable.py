@@ -19,9 +19,6 @@ class DiskTable:
         self.fs = Filestream()
         self.fs.open(DBConfig.get)
 
-    def __exit__(self):
-        self.file.close()
-
     def __str__(self):
         return ''.join('--- DiskTable ' + self.table + ' ---\n',
                        'nDatafile = ', self.path, '\n')
@@ -46,7 +43,6 @@ def tests():
     pprint(dt.datadic)
     pprint(dt.fieldindex)
 
-    dt.openNextFile()
     line = dt.readline()
     print('%s: %s' % (dt.curfilename, line))
     
