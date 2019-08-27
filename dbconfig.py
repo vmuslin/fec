@@ -7,13 +7,11 @@ STRING = 1
 DATE = 3
 
 DBSpec = {
-    'DataDir': '../fec-data',
-    'DataDirPattern' : 'data/*',
+    'DataDirPattern': None,
     'FieldSeparator' : '|',
     'Tables': {
         # Contributions by Individuals
         'CBI': {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'itcont*.txt',
             'Fields' : (('CMTE_ID', STRING),
                         ('AMNDT_IND', STRING),
@@ -39,7 +37,6 @@ DBSpec = {
         },
         # Candidate Master
         'CANDIDATE' : {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'cn*.txt',
             'Fields' : (('CAND_ID', STRING),
                         ('CAND_NAME', STRING),
@@ -59,7 +56,6 @@ DBSpec = {
         },
         # Candidate Committee Linkage
         'CCL' : {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'ccl*.txt',
             'Fields' : (('CAND_ID', STRING),
                         ('CAND_ELECTION_YR', STRING),
@@ -71,7 +67,6 @@ DBSpec = {
         },
         # Committee Master
         'COMMITTEE' : {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'cm*.txt',
             'Fields' : (('CMTE_ID', STRING),
                         ('CMTE_NM', STRING),
@@ -91,37 +86,31 @@ DBSpec = {
         },
         # All Candidates
         'ALL' : {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'weball*.txt',
             'Fields' : {}
         },
         # House/Sentate Current Campaigns
         'HSCC' : {
-            'ZipPattern' : 'weball*.zip',
             'FilePattern' : '*.txt',
             'Fields' : {}
         },
         # PAC Summary
         'PAC' : {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'webk*.txt',
             'Fields' : {}
         },
         # Contributions from committees to candidates & independent expenditures
         'CFC' : {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'pas*.txt',
             'Fields' : {}
         },
         # Any transaction from one committee to another
         'TFC' : {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'oth*.txt',
             'Fields' : {}
         },
         # Operating expenditures
         'OE' : {
-            'ZipPattern' : '*.zip',
             'FilePattern' : 'oppexp*.txt',
             'Fields' : {}
         }
@@ -134,19 +123,8 @@ class DBConfig:
         pass
 
     @staticmethod
-    def getArchives(table):
-        pattern = os.path.join(DBConfig.getDataDirPattern(),
-                               DBSpec['Tables'][table]['ZipPattern'])
-        archives = glob.glob(pattern)
-        return archives
-
-    @staticmethod
     def getDataDic(table):
         return DBSpec['Tables'][table]['Fields']
-
-    @staticmethod
-    def getDataDir():
-        return DBSpec['DataDir']
 
     @staticmethod
     def getDataDirPattern():
@@ -173,21 +151,20 @@ class DBConfig:
         return files
 
     @staticmethod
-    def getFilesAndArchives(table):
-        files = DBConfig.getFiles(table)
-        archives = DBConfig.getArchives(table)
-        return files + archives
-
-    @staticmethod
     def getSep():
         return DBSpec['FieldSeparator']
+
+    @staticmethod
+    def setDataDirPattern(pattern):
+        DBSpec['DataDirPattern'] = pattern
 
 
 def tests():
     table = 'CANDIDATE'
+    DBConfig.setDataDirPattern(os.path.join('..', 'data', 'fec-data', '*'))
     pprint(DBConfig.getDataDic(table))
     pprint(DBConfig.getFieldIndex(table))
-    pprint(DBConfig.getFilesAndArchives(table))
+    pprint(DBConfig.getFiles(table))
 
 if __name__ == '__main__':
     tests()

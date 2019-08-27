@@ -2,10 +2,11 @@ import sys
 import os.path
 import argparse
 import glob
-import zipfile
 import timeit
+
 from pprint import pprint
 
+from filestream import Filestream
 from dbconfig import DBConfig
 
 
@@ -15,8 +16,8 @@ class DiskTable:
         self.datadic = DBConfig.getDataDic(table)
         self.fieldindex = DBConfig.getFieldIndex(table)
         self.files = DBConfig.getFilesAndArchives(table)
-        self.curfile = None
-        self.curfilename = None
+        self.fs = Filestream()
+        self.fs.open(DBConfig.get)
 
     def __exit__(self):
         self.file.close()
@@ -38,23 +39,6 @@ class DiskTable:
     @property
     def name(self):
         return self.table
-
-    def openNextFile(self):
-        for f in self.files:
-            self.curfilename = f
-            if '.zip' in f:
-                with zipfile.ZipFile(f) as z:
-                    with z.open('cn.txt') as zf:
-                        self.curfile = zf
-            else:
-                ff = open(f)
-                self.curfile = ff
-
-    def readline(self):
-        line = next(self.curfile)
-        if '.zip' in self.curfilename:
-            line = str(line)[2:].split('|')
-        return line
 
 
 def tests():
