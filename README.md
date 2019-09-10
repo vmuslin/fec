@@ -1,6 +1,10 @@
 # FEC - Federal Election Commission Database Loader
 
 The program dbloader.py creates a SQLite database and loads FEC datasets.
+FIXME: Need to add command line parameters parsing...
+
+Shell script run_sql.sh simplifies some of the queries (need m4 macro processor).
+Some sample queries are in the queries subdirectory.
 
 The datasets can be downloaded from the FEC website [bulkload data page](https://www.fec.gov/data/browse-data/?tab=bulk-data).
 
@@ -44,4 +48,4 @@ For example:
   |  +--weball18.txt
   |  +--wbk18.txt
   |  +--web18.txt
-  ``
+  ```
