@@ -6,7 +6,9 @@ import zipfile
 import timeit
 from pprint import pprint
 
-from datadic import Config
+from dbconfig import DBConfig
+from disktable import DiskTable
+
 
 class Args:
     def __init__(self):

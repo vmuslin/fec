@@ -1,114 +1,142 @@
-AMOUNT = 0
-STRING = 1
-DATE = 3
+import os.path
+import glob
 
-DBSpec = {
-    'DataDirPattern': None,
-    'FieldSeparator' : '|',
-    'Tables': {
-        # Contributions by Individuals
-        'CBI': {
-            'FilePattern' : 'itcont*.txt',
-            'Fields' : (('CMTE_ID', STRING),
-                        ('AMNDT_IND', STRING),
-                        ('RPT_TP', STRING),
-                        ('TRANSACTION_PGI', STRING),
-                        ('IMAGE_NUM', STRING),
-                        ('TRANSACTION_TP', STRING),
-                        ('ENTITY_TP', STRING),
-                        ('NAME', STRING),
-                        ('CITY', STRING),
-                        ('STATE', STRING),
-                        ('ZIP_CODE', STRING),
-                        ('EMPLOYER', STRING),
-                        ('OCCUPATION', STRING),
-                        ('TRANSACTION_DT', DATE),
-                        ('TRANSACTION_AMT', AMOUNT),
-                        ('OTHER_ID', STRING),
-                        ('TRAN_ID', STRING),
-                        ('FILE_NUM', STRING),
-                        ('MEMO_CD', 'NUMBER'),
-                        ('MEMO_TEXT', STRING),
-                        ('SUB_ID', 'NUMBER'))
-        },
-        # Candidate Master
-        'CANDIDATE' : {
-            'FilePattern' : 'cn*.txt',
-            'Fields' : (('CAND_ID', STRING),
-                        ('CAND_NAME', STRING),
-                        ('CAND_PTY_AFFILIATION', STRING),
-                        ('CAND_ELECTION_YR', STRING),
-                        ('CAND_OFFICE_ST', STRING),
-                        ('CAND_OFFICE', STRING),
-                        ('CAND_OFFICE_DISTRICT', STRING),
-                        ('CAND_ICI', STRING),
-                        ('CAND_STATUS', STRING),
-                        ('CAND_PCC', STRING),
-                        ('CAND_ST1', STRING),
-                        ('CAND_ST2', STRING),
-                        ('CAND_CITY', STRING),
-                        ('CAND_ST', STRING),
-                        ('CAND_ZIP', STRING))
-        },
-        # Candidate Committee Linkage
-        'CCL' : {
-            'FilePattern' : 'ccl*.txt',
-            'Fields' : (('CAND_ID', STRING),
-                        ('CAND_ELECTION_YR', STRING),
-                        ('FEC_ELECTION_YR', STRING),
-                        ('CMTE_ID', STRING),
-                        ('CMTE_TP', STRING),
-                        ('CMTE_DSGN', STRING),
-                        ('LINKAGE_ID', STRING))
-        },
-        # Committee Master
-        'COMMITTEE' : {
-            'FilePattern' : 'cm*.txt',
-            'Fields' : (('CMTE_ID', STRING),
-                        ('CMTE_NM', STRING),
-                        ('TRES_NM', STRING),
-                        ('CMTE_ST1', STRING),
-                        ('CMTE_ST2', STRING),
-                        ('CMTE_CITY', STRING),
-                        ('CMTE_ST', STRING),
-                        ('CMTE_ZIP', STRING),
-                        ('CMTE_DSGN', STRING),
-                        ('CMTE_TP', STRING),
-                        ('CMTE_PTY_AFFILIATION', STRING),
-                        ('CMTE_FILING_FREQ', STRING),
-                        ('ORG_TP', STRING),
-                        ('CONNECTED_ORG_NM', STRING),
-                        ('CAND_ID', STRING))
-        },
-        # All Candidates
-        'ALL' : {
-            'FilePattern' : 'weball*.txt',
-            'Fields' : {}
-        },
-        # House/Sentate Current Campaigns
-        'HSCC' : {
-            'FilePattern' : '*.txt',
-            'Fields' : {}
-        },
-        # PAC Summary
-        'PAC' : {
-            'FilePattern' : 'webk*.txt',
-            'Fields' : {}
-        },
-        # Contributions from committees to candidates & independent expenditures
-        'CFC' : {
-            'FilePattern' : 'pas*.txt',
-            'Fields' : {}
-        },
-        # Any transaction from one committee to another
-        'TFC' : {
-            'FilePattern' : 'oth*.txt',
-            'Fields' : {}
-        },
-        # Operating expenditures
-        'OE' : {
-            'FilePattern' : 'oppexp*.txt',
-            'Fields' : {}
-        }
-    }
-}
+class DataDic:
+
+    def __init__(self, datadic, filepath=None):
+        self.datadic = datadic
+        if filepath:
+            self.filepath = os.path.join(*filepath.split('/'))
+        else:
+            self.filepath = '.'
+
+        self.filenames = {}
+        for table in datadic:
+             if 'filenames' in datadic[table]:
+                 self.filenames[table] = glob.glob(os.path.join(self.filepath, self.datadic[table]['filenames']))
+             else:
+                self.filenames[table] = None
+
+
+    @property
+    def tables(self):
+        for table in self.datadic:
+            if table[0] != '#':
+                yield table
+
+
+    def get_columns(self, table):
+        return self.datadic[table]['columns']
+
+
+    def get_dataset(self, filename):
+        return os.path.basename(os.path.dirname(filename)).replace('-', '_')
+
+
+    def get_tablename(self, table, filename):
+        return table + '_' + self.get_dataset(filename)
+
+    
+    def get_filenames(self, table):
+        return self.filenames[table]
+
+
+    def real_tablename(self, table, filename=None, suffix=None):
+        if filename is not None:
+            return self.get_tablename(table, filename)
+        elif suffix is not None:
+            return table + suffix
+        else:
+            return table
+
+
+    def create_table_stmt(self, table, filename=None, suffix=None):
+        s = 'CREATE TABLE IF NOT EXISTS %s (\n' % self.real_tablename(table, filename, suffix)
+        for column in self.get_columns(table):
+            if column.datatype == 'DATE':
+                column = [column.name, 'INTEGER', column.other, column.nullable]
+            elif column.datatype == 'MONEY':
+                column = [column.name, 'INTEGER', column.other, column.nullable]
+            else:
+                column = [column.name, column.datatype, column.other, column.nullable]
+            s += '\t' + ' '.join(column) + ',\n'
+        s = s[:-2] + ');'
+
+        return s
+    
+
+    def create_view_stmt(self, table, filenames):
+        s = 'CREATE VIEW IF NOT EXISTS %s (\n' % table
+
+        sel = ''
+        for column in self.get_columns(table):
+            s += '\t%s,\n' % column.name
+            sel += '\t%s,\n' % column.name
+        s = s[:-2] + ') AS\n'
+        sel = sel[:-2]
+
+        for filename in filenames:
+            s += 'SELECT %s\nFROM %s\nUNION ALL\n'  % (sel, self.real_tablename(table, filename))
+        s = s[:-10]
+
+        return s
+        
+
+    def create_v_individual_contributions_to_candidates(self, table):
+        s = 'CREATE VIEW IF NOT EXISTS v_individual_contributions_to_candidates AS '
+
+        i = 0
+        for file in self.get_filenames(table):
+            if i > 0:
+                s += 'UNION ALL\n';
+                i += 1
+            
+            dataset = self.get_dataset(file)
+
+            s += '''
+            SELECT
+              i.cmte_id,
+              m.cand_id,
+              m.cand_name,
+              c.cmte_name,
+              i.name,
+              i.city,
+              i.state,
+              i.zip_code,
+              i.employer,
+              i.occupation,
+              i.transaction_amt,
+              i.transaction_dt
+            FROM
+              icontributions_%s i
+              LEFT JOIN committees_%s c ON i.cmte_id = c.cmte_id
+              LEFT JOIN cc_linkages_%s l ON c.cmte_id = l.cmte_id
+              LEFT JOIN candidate_master_%s m ON l.cand_id = m.cand_id
+            ''' % (dataset, dataset, dataset, dataset)
+
+        return s
+
+
+    def insert_stmt(self, table, filename=None, suffix=None):
+        return ('INSERT INTO %s VALUES(' % self.real_tablename(table, filename, suffix)) + \
+                '?,' * (len(self.get_columns(table))-1) + '?)'
+
+
+if __name__ == '__main__':
+    from dbconfig import Tables
+    db = DataDic(Tables, '../data/fec/*')
+
+    for t in db.tables:
+
+        for f in db.get_filenames(t):
+            print('--- Table: %s (%d columns) ---' % (t, len(db.get_columns(t))))
+            print(db.create_table_stmt(t, f))
+            print(db.insert_stmt(t))
+            print('')
+            
+        print('--- View %s ---' % t)
+        print(db.create_view_stmt(t, db.get_filenames(t)))
+        print('')
+
+    print('--- View v_individual_contributions_to_candidates ---')
+    print(db.create_v_individual_contributions_to_candidates('icontributions'))
