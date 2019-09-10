@@ -1,6 +1,4 @@
-=================================================
 FEC - Federal Election Commission Database Loader
-=================================================
 
 The program dbloader.py creates a SQLite database and loads FEC datasets.
 
@@ -18,7 +16,7 @@ Note that datasets are stored as zipped archives. They need to be extracted into
 
 For example:
 
-  parent
+''  parent
   |
   +--2015-2016
   |  |
@@ -44,7 +42,4 @@ For example:
   |  +--oppexp.txt
   |  +--weball18.txt
   |  +--wbk18.txt
-  |  +--web18.txt
-
-
-
+  |  +--web18.txt''
