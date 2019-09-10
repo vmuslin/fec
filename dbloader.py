@@ -8,7 +8,6 @@ import sqlite3
 from sqlite3 import Error
 from collections import namedtuple
 
-import dbshell
 from datadic import DataDic
 from sqlite_wrapper import SQLite
 from dbconfig import Tables
@@ -67,42 +66,15 @@ class Fec:
 
                 try:
                     split_row = row[:-1].split('|')[:len(self.datadic.get_columns(table))]
-                    ncols = len(split_row)
 
-                    for col in range(ncols):
-                        field = split_row[col]
+                    for col in range(len(split_row)):
                         column = columns[col]
 
                         if column.datatype == 'MONEY':
-                            if field:
-                                split_row[col] = int(float(split_row[col])*100)
-                            else:
-                                split_row[col] = 0
+                            split_row[col] = self.process_money_field(split_row[col])
 
                         elif column.datatype == 'DATE':
-                            field_len = len(field)
-
-                            if '/' in field:
-                                month, day, year = field.split('/')
-                                if field_len == 10:  # Assume format MM/DD/YYYY
-                                    split_row[col] = self.seconds_since_epoch(day, month, year)
-                                elif field_len == 8: # Assume format MM/DD/YY
-                                    split_row[col] = self.seconds_since_epoch(day, month, year, 2000)
-                                else:
-                                    split_row[col] = 0
-                            else:
-                                if field_len == 8: # Assume format MMDDYYYY
-                                    split_row[col] = self.seconds_since_epoch(day=field[2:4],
-                                                                              month=field[0:2],
-                                                                              year=field[4:])
-                                elif field_len == 6: # Assume format MMDDYY
-                                    split_row[col] = self.seconds_since_epoch(day=field[2:4],
-                                                                              month=field[0:2],
-                                                                              year=field[4:],
-                                                                              year_increase=2000)
-                                else:
-                                    split_row[col] = 0
-
+                            split_row[col] = self.process_date_field(split_row[col])
 
                 except ValueError as e:
                     print('Load error!')
@@ -124,6 +96,38 @@ class Fec:
             print('Final: Inserted %d rows' % nrows)
 
         
+    def process_money_field(self, field):
+        if field:
+            return int(float(field) * 100) # Store money amounts in cents
+        else:
+            return 0
+
+
+    def process_date_field(self, field):
+        field_len = len(field)
+
+        if '/' in field:
+            month, day, year = field.split('/')
+            if field_len == 10:  # Assume format MM/DD/YYYY
+                return self.seconds_since_epoch(day, month, year)
+            elif field_len == 8: # Assume format MM/DD/YY
+                return self.seconds_since_epoch(day, month, year, 2000)
+            else:
+                return 0
+        else:
+            if field_len == 8: # Assume format MMDDYYYY
+                return self.seconds_since_epoch(day=field[2:4],
+                                                month=field[0:2],
+                                                year=field[4:])
+            elif field_len == 6: # Assume format MMDDYY
+                return self.seconds_since_epoch(day=field[2:4],
+                                                month=field[0:2],
+                                                year=field[4:],
+                                                year_increase=2000)
+            else:
+                return 0
+
+
     def create_connection(self):
         return SQLite.create_connection(self.database)
 
@@ -148,19 +152,25 @@ class Fec:
                 print(sql)
                 c.execute(sql)
 
-        set.datadic.create_v_individual_contributions_to_candidates('icontributions')
+        self.datadic.create_v_individual_contributions_to_candidates('icontributions')
 
         conn.commit()
 
 
 def test():
 
-    db = Fec('./FEC.db', '../data/fec/*')
+    database = '../data/fec/FEC.db'
+    datasets = '../data/fec/*'
+
+    print('Creating database %s and loading from %s' % (database, datasets))
+
+    db = Fec(database, datasets)
+
     conn = db.create_connection()
 
     if conn is not None:
         db.create_tables_and_views(conn)
-        db.bulkload_db(conn, 10000)
+        db.bulkload_db(conn, 10000, 3)
         #dbshell.db_shell(conn)
 
     conn.close()
