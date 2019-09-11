@@ -1,7 +1,10 @@
 # FEC - Federal Election Commission Database Loader
 
 The program dbloader.py creates a SQLite database and loads FEC datasets.
-FIXME: Need to add command line parameters parsing...
+
+Please note that currently the loader is very "dumb" and assumes that the database
+will be located at ../data/fec/FEC.db and the datasets are located at ../data/fec
+parent directory relative to the current working directory where the loader is run.
 
 Shell script run_sql.sh simplifies some of the queries (need m4 macro processor).
 Some sample queries are in the queries subdirectory.
@@ -21,7 +24,7 @@ Note that datasets are stored as zipped archives. They need to be extracted into
 For example:
 
 ```
-  parent
+  datasets
   |
   +--2015-2016
   |  |
@@ -49,3 +52,8 @@ For example:
   |  +--wbk18.txt
   |  +--web18.txt
   ```
+
+ - [ ] Parse command line parameters to:
+   - [ ] Set the location and name of the database
+   - [ ] Set the location of the datasets directory
+ - [ ] Create an option to build indexes for better query performance
