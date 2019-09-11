@@ -2,9 +2,11 @@
 
 The program dbloader.py creates a SQLite database and loads FEC datasets.
 
-Please note that currently the loader is very "dumb" and assumes that the database
-will be located at ../data/fec/FEC.db and the datasets are located at ../data/fec
-parent directory relative to the current working directory where the loader is run.
+Please note that currently a few things are hardcoded (in dbloader.py) file  that is
+to be run from command line with no parameters. Specifically,
+ - Location of the database is hardcoed at ../data/fec/FEC.db,
+ - Location of the datasets directory is hardcoded at ../data/fec.
+   - See the expected structure of the datasets directory below.
 
 Shell script run_sql.sh simplifies some of the queries (need m4 macro processor).
 Some sample queries are in the queries subdirectory.
@@ -21,7 +23,7 @@ as "2015-2016."
 
 Note that datasets are stored as zipped archives. They need to be extracted into the directory structure.
 
-For example:
+## Datasets directory structure
 
 ```
   datasets
@@ -53,6 +55,7 @@ For example:
   |  +--web18.txt
   ```
 
+## To Do List
  - [ ] Parse command line parameters to:
    - [ ] Set the location and name of the database
    - [ ] Set the location of the datasets directory
