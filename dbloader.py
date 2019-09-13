@@ -9,7 +9,7 @@ from sqlite3 import Error
 from collections import namedtuple
 
 from datadic import DataDic
-from sqlite_wrapper import SQLite
+from sqlite_db.sqlite_wrapper import SQLite
 from dbconfig import Tables
  
 
